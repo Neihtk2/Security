@@ -1,7 +1,3 @@
-/**
- * Created by daewubintara on
- * 09, September 2020 09.05
- */
 
 class RouterName {
   static const String splash = '/splash';
@@ -16,4 +12,5 @@ class RouterName {
   static const String donecash = '/donecash';
   static const String addcart = '/addcart';
   static const String userinfo = '/userinfo';
+  static const String pininput = '/pininput';
 }

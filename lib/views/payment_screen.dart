@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shop_shose/services/api_service.dart';
+import 'package:shop_shose/viewmodels/controller/auth_viewmodel.dart';
 import 'package:shop_shose/viewmodels/controller/shoe_controller.dart';
 import 'package:shop_shose/x_router/router_name.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -12,6 +13,7 @@ class PaymentScreen extends StatefulWidget {
 
 class _PaymentScreenState extends State<PaymentScreen> {
   final ApiService _apiService = ApiService();
+  final AuthViewModel userController = Get.find();
   late final WebViewController _controller;
   bool _isLoading = true;
   final ShoeController shoeController = Get.find();
@@ -62,7 +64,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   Future<void> _handlePaymentSuccess() async {
     try {
-      await _apiService.postOrder(Get.arguments['order']);
+      await _apiService.postOrder(
+          Get.arguments['order'], userController.token.value);
       await shoeController.getCart();
       await shoeController.getAllOrders();
     } catch (e) {

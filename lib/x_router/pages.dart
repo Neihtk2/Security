@@ -7,6 +7,7 @@ import 'package:shop_shose/views/oder_detail_screen.dart';
 import 'package:shop_shose/views/oder_history_screen.dart';
 import 'package:shop_shose/views/payment_info.dart';
 import 'package:shop_shose/views/payment_screen.dart';
+import 'package:shop_shose/views/pin_input.dart';
 import 'package:shop_shose/views/signin_screen.dart';
 import 'package:shop_shose/views/splash_screen.dart';
 import 'package:shop_shose/views/user_info_screen.dart';
@@ -57,6 +58,10 @@ class Pages {
       GetPage(
         name: RouterName.userinfo,
         page: () => UserInfoScreen(),
+      ),
+      GetPage(
+        name: RouterName.pininput,
+        page: () => OtpScreen(),
       ),
     ];
   }

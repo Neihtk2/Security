@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:shop_shose/config/my_config.dart';
+import 'package:shop_shose/viewmodels/controller/auth_viewmodel.dart';
 import 'package:shop_shose/viewmodels/controller/shoe_controller.dart';
 import '../models/cart_item.dart';
 
@@ -48,7 +49,7 @@ class CartScreen extends StatelessWidget {
 class CartItemWidget extends StatelessWidget {
   final CartItem cartItem;
   final ShoeController shoeController = Get.find<ShoeController>();
-
+  final AuthViewModel userController = Get.find();
   CartItemWidget({required this.cartItem});
   void _handlePayment() {
     shoeController.proceedToPaymentSingle(cartItem);
@@ -87,7 +88,7 @@ class CartItemWidget extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.delete, color: Colors.red),
             onPressed: () {
-              shoeController.remotefromCart(GetStorage().read(MyConfig.ID_USER),
+              shoeController.remotefromCart(userController.userinfo.value!.id,
                   cartItem.idProduct, cartItem.size);
             },
             tooltip: 'Remove from cart',

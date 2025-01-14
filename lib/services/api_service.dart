@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:get/get.dart' as getx;
 import 'package:get_storage/get_storage.dart';
 import 'package:shop_shose/config/my_config.dart';
 import 'package:shop_shose/models/cart_item.dart';
@@ -9,14 +10,32 @@ import 'package:shop_shose/models/shoes_model.dart';
 import 'package:shop_shose/models/user_model.dart';
 import 'package:shop_shose/networking/constants/endpoints.dart';
 import 'package:shop_shose/services/baseURL.dart';
+import 'package:shop_shose/x_router/router_name.dart';
 
 class ApiService {
   final Dio _dio = Dio(BaseOptions(baseUrl: baseURL));
+  // final token = GetStorage().read(MyConfig.ACCESS_TOKEN_KEY);
   Future<Response> LoginApp(String phoneNumber, String password) async {
     return await _dio.post(Endpoints.login, data: {
-      'phoneNumber': phoneNumber,
+      'email': phoneNumber,
       'pass': password,
     });
+  }
+
+  Future<Response> verifyOtp(String email, String otp) async {
+    return await _dio.post(Endpoints.getOtp, data: {
+      'email': email,
+      'otp': otp,
+    });
+
+    //   if (response.statusCode == 200) {
+    //     return response.data['token'];
+    //   }
+    //   return null;
+    // } catch (e) {
+    //   print('OTP verification error: $e');
+    //   return null;
+    // }
   }
 
   Future<Response> SigninApp(
@@ -29,19 +48,39 @@ class ApiService {
     });
   }
 
-  Future<CartItemData> getCart() async {
-    final response = await _dio
-        .get(Endpoints.getcart + GetStorage().read(MyConfig.ACCESS_TOKEN_KEY));
+  Future<CartItemData> getCart(String token) async {
+    final response = await _dio.get(
+      Endpoints.getcart,
+      options: Options(
+        headers: {
+          'Authorization': 'Bearer $token', // Truyền token vào header
+        },
+      ),
+    );
     if (response.statusCode == 200) {
       return CartItemData.fromJson(response.data);
     } else {
+      getx.Get.snackbar(
+        'Thông báo',
+        'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
+        snackPosition: getx.SnackPosition.BOTTOM,
+      );
+      await GetStorage().remove(MyConfig.ACCESS_TOKEN_KEY);
+      getx.Get.offAllNamed(RouterName.login);
       throw Exception('Failed to load shoes');
     }
   }
 
-  Future<String> createPayment(int amount) async {
+  Future<String> createPayment(int amount, String token) async {
     try {
-      final response = await _dio.get(Endpoints.payment + amount.toString());
+      final response = await _dio.get(
+        Endpoints.payment + amount.toString(),
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token', // Truyền token vào header
+          },
+        ),
+      );
       return response.data['data']['vnpUrl'];
     } catch (e) {
       throw Exception('Không thể tạo thanh toán: $e');
@@ -51,21 +90,32 @@ class ApiService {
   Future<void> addToCart(
       String token, String productId, String size, int quantity) async {
     try {
-      await _dio.post('/post-product-to-cart', data: {
-        'token': token,
-        'id_product': productId,
-        'size': size,
-        'quantity': quantity,
-      });
+      await _dio.post(Endpoints.addcart,
+          options: Options(
+            headers: {
+              'Authorization': 'Bearer $token', // Truyền token vào header
+            },
+          ),
+          data: {
+            'id_product': productId,
+            'size': size,
+            'quantity': quantity,
+          });
     } catch (e) {
       throw Exception('Không thể thêm sản phẩm vào giỏ hàng: $e');
     }
   }
 
-  Future<void> remotefromCart(int idUser, int idProduct, int size) async {
+  Future<void> remotefromCart(
+      int idUser, int idProduct, int size, String token) async {
     try {
       final response = await _dio.delete(
         Endpoints.remotefromCart,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token', // Truyền token vào header
+          },
+        ),
         data: {
           'id_user': idUser,
           'id_product': idProduct,
@@ -90,8 +140,16 @@ class ApiService {
     }
   }
 
-  Future<ShoesData> getShoes() async {
-    final response = await _dio.get(Endpoints.getshoes);
+  Future<ShoesData> getShoes(String token) async {
+    final response = await _dio.get(
+      Endpoints.getshoes,
+      options: Options(
+        headers: {
+          'Authorization': 'Bearer $token', // Truyền token vào header
+        },
+      ),
+    );
+
     if (response.statusCode == 200) {
       return ShoesData.fromJson(response.data);
     } else {
@@ -99,10 +157,15 @@ class ApiService {
     }
   }
 
-  Future<void> postOrder(Order order) async {
+  Future<void> postOrder(Order order, String token) async {
     try {
       final response = await _dio.post(
         Endpoints.placeOrder,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token', // Truyền token vào header
+          },
+        ),
         data: order.toJson(),
       );
       if (response.statusCode == 200) {
@@ -115,9 +178,16 @@ class ApiService {
     }
   }
 
-  Future<List<Datum>> getAllOrders(int userId) async {
+  Future<List<Datum>> getAllOrders(int userId, String token) async {
     try {
-      final response = await _dio.get(Endpoints.getalloder + userId.toString());
+      final response = await _dio.get(
+        Endpoints.getalloder + userId.toString(),
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token', // Truyền token vào header
+          },
+        ),
+      );
       if (response.statusCode == 200) {
         if (response.data['data'] != null) {
           List<dynamic> ordersData = response.data['data'];
@@ -133,10 +203,16 @@ class ApiService {
     }
   }
 
-  Future<List<OderDetail>> getOrderDetails(int orderId) async {
+  Future<List<OderDetail>> getOrderDetails(int orderId, String token) async {
     try {
-      final response =
-          await _dio.get(Endpoints.getdetailoder + orderId.toString());
+      final response = await _dio.get(
+        Endpoints.getdetailoder + orderId.toString(),
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token', // Truyền token vào header
+          },
+        ),
+      );
       if (response.statusCode == 200) {
         if (response.data['data'] != null) {
           List<dynamic> ordersData = response.data['data'];
@@ -152,10 +228,16 @@ class ApiService {
     }
   }
 
-  Future<int> getQuantity(String id, String size) async {
+  Future<int> getQuantity(String id, String size, String token) async {
     try {
-      final response =
-          await _dio.get('${Endpoints.getquantity}?id=$id&size=$size');
+      final response = await _dio.get(
+        '${Endpoints.getquantity}?id=$id&size=$size',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token', // Truyền token vào header
+          },
+        ),
+      );
       if (response.statusCode == 200 && response.data['data'] != null) {
         List<dynamic> data = response.data['data'];
         if (data.isNotEmpty) {
@@ -166,6 +248,13 @@ class ApiService {
           return 0; // Trả về giá trị mặc định nếu không có dữ liệu
         }
       } else {
+        getx.Get.snackbar(
+          'Thông báo',
+          'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
+          snackPosition: getx.SnackPosition.BOTTOM,
+        );
+        await GetStorage().remove(MyConfig.ACCESS_TOKEN_KEY);
+        getx.Get.offAllNamed(RouterName.login);
         throw Exception('Failed to load quantity');
       }
     } catch (e) {
@@ -175,7 +264,14 @@ class ApiService {
 
   Future<User> getUserInfo(String token) async {
     try {
-      final response = await _dio.get('${Endpoints.getUserInfo}$token');
+      final response = await _dio.get(
+        Endpoints.getUserInfo,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token', // Truyền token vào header
+          },
+        ),
+      );
       if (response.statusCode == 200 && response.data != null) {
         return User.fromJson(response.data['data'][0]);
       } else {

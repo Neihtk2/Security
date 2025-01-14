@@ -14,6 +14,7 @@ class Endpoints {
   static const String payment = "/payment?amount=";
   static const String getquantity = "/get-quantity";
   static const String getUserInfo = "/get-user?token=";
+  static const String getOtp = "/verify-otp";
   // static const String refreshToken = "/accounts/refreshToken";
   // static const String api_keys_extend = "/api/api-keys-extend";
 

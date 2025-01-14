@@ -1,20 +1,3 @@
-class UserData {
-  UserData({
-    required this.data,
-    required this.token,
-  });
-
-  final User? data;
-  final String? token;
-
-  factory UserData.fromJson(Map<String, dynamic> json) {
-    return UserData(
-      data: json["data"] == null ? null : User.fromJson(json["data"]),
-      token: json["token"],
-    );
-  }
-}
-
 class User {
   User({
     required this.id,
